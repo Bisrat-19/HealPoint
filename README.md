@@ -1,73 +1,152 @@
-# Welcome to your Lovable project
+# HealPoint - Hospital Management System
 
-## Project info
+A modern, comprehensive hospital management system built with React and TypeScript, designed to streamline patient registration, appointment scheduling, treatment tracking, and payment processing.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🏥 Features
 
-## How can I edit this code?
+- **Patient Management**: Register and manage patient records with comprehensive information tracking
+- **Appointment Scheduling**: Book and manage appointments with support for initial consultations and follow-ups
+- **Treatment Tracking**: Record and monitor patient treatments and medical procedures
+- **Payment Processing**: Handle payments with multiple payment methods including Chapa integration
+- **User Management**: Role-based access control for doctors, receptionists, and administrators
+- **Dashboard**: Real-time overview of appointments, patients, and treatments
+- **Appointment Cancellation**: Receptionists can cancel appointments (with restrictions)
+- **Patient Deletion**: Cascade deletion of patient records with associated appointments, treatments, and payments
 
-There are several ways of editing your application.
+## 🚀 Getting Started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- Node.js (v16 or higher)
+- npm or yarn
+- Backend API running (Django)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
+1. Clone the repository:
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
 git clone <YOUR_GIT_URL>
+cd HealPoint
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies:
+```sh
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server:
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:5173` (or the port shown in your terminal).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🛠️ Tech Stack
 
-**Use GitHub Codespaces**
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn-ui
+- **State Management**: React Query (TanStack Query)
+- **Routing**: React Router
+- **Form Handling**: React Hook Form
+- **HTTP Client**: Axios
+- **Icons**: Lucide React
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 📁 Project Structure
 
-## What technologies are used for this project?
+```
+HealPoint/
+├── src/
+│   ├── components/        # Reusable UI components
+│   │   ├── dashboard/    # Dashboard-specific components
+│   │   └── ui/           # shadcn-ui components
+│   ├── services/         # API service layer
+│   │   ├── appointments.ts
+│   │   ├── patients.ts
+│   │   ├── treatments.ts
+│   │   ├── payments.ts
+│   │   └── users.ts
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/              # Utility functions and configurations
+│   ├── pages/            # Page components
+│   └── App.tsx           # Main application component
+├── public/               # Static assets
+└── index.html           # HTML entry point
+```
 
-This project is built with:
+## 🔧 Configuration
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Environment Variables
 
-## How can I deploy this project?
+Create a `.env` file in the root directory with the following variables:
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+```env
+VITE_API_URL=http://localhost:8000/api
+```
 
-## Can I connect a custom domain to my Lovable project?
+### Backend Integration
 
-Yes, you can!
+This frontend application requires the HealPoint Django backend to be running. Ensure the backend API is accessible at the URL specified in your environment variables.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 📝 Available Scripts
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## 🎨 Features in Detail
+
+### Patient Registration
+- Comprehensive patient information capture
+- Support for multiple payment methods
+- Automatic appointment creation
+- Chapa payment gateway integration for online payments
+
+### Appointment Management
+- View all appointments
+- Filter by appointment type (Initial/Follow-up)
+- View today's appointments
+- Cancel appointments (with role-based permissions)
+
+### Treatment Management
+- Record patient treatments
+- Track treatment history
+- Automatic patient status updates
+
+### Dashboard
+- Real-time statistics
+- Quick access to today's appointments
+- Patient and treatment overview
+
+## 🔐 Authentication & Authorization
+
+The system implements role-based access control with the following roles:
+- **Doctor**: Full access to patient treatments and medical records
+- **Receptionist**: Patient registration, appointment management
+- **Admin**: Full system access
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 👥 Support
+
+For support and questions, please contact the development team.
+
+## 🔄 Recent Updates
+
+- Renamed system from HMS to HealPoint
+- Added Chapa payment gateway integration
+- Implemented appointment cancellation feature
+- Enhanced patient deletion with cascade cache invalidation
+- Improved frontend caching and data synchronization
