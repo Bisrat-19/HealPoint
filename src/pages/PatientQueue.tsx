@@ -10,6 +10,49 @@ import {
   Loader2
 } from 'lucide-react';
 
+const QueueItem = React.memo(({ patient }: { patient: any }) => (
+  <div
+    className={`flex items-center justify-between p-4 rounded-lg border transition-all ${patient.is_seen ? 'bg-muted/30 opacity-60' : 'bg-card hover:shadow-md'
+      }`}
+  >
+    <div className="flex items-center gap-4">
+      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${patient.is_seen
+        ? 'bg-success/10 text-success'
+        : 'bg-warning/10 text-warning'
+        }`}>
+        #{patient.queue_number}
+      </div>
+      <div>
+        <p className="font-semibold text-foreground">
+          {patient.first_name} {patient.last_name}
+        </p>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Stethoscope className="w-3 h-3" />
+          Dr. {patient.assigned_doctor?.first_name || 'Unassigned'}
+        </div>
+      </div>
+    </div>
+    <div className="flex items-center gap-3">
+      <span className="text-sm text-muted-foreground">
+        {new Date(patient.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      </span>
+      <Badge variant={patient.is_seen ? 'default' : 'secondary'}>
+        {patient.is_seen ? (
+          <>
+            <CheckCircle2 className="w-3 h-3 mr-1" />
+            Seen
+          </>
+        ) : (
+          <>
+            <Clock className="w-3 h-3 mr-1" />
+            Waiting
+          </>
+        )}
+      </Badge>
+    </div>
+  </div>
+));
+
 const PatientQueue = () => {
   const { data: todayPatients = [], isLoading } = useTodayPatients();
   const waiting = todayPatients.filter(p => !p.is_seen);
@@ -81,47 +124,7 @@ const PatientQueue = () => {
         <CardContent>
           <div className="space-y-3">
             {todayPatients.map((patient) => (
-              <div
-                key={patient.id}
-                className={`flex items-center justify-between p-4 rounded-lg border transition-all ${patient.is_seen ? 'bg-muted/30 opacity-60' : 'bg-card hover:shadow-md'
-                  }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${patient.is_seen
-                      ? 'bg-success/10 text-success'
-                      : 'bg-warning/10 text-warning'
-                    }`}>
-                    #{patient.queue_number}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">
-                      {patient.first_name} {patient.last_name}
-                    </p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Stethoscope className="w-3 h-3" />
-                      Dr. {patient.assigned_doctor?.first_name || 'Unassigned'}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground">
-                    {new Date(patient.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  <Badge variant={patient.is_seen ? 'default' : 'secondary'}>
-                    {patient.is_seen ? (
-                      <>
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                        Seen
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="w-3 h-3 mr-1" />
-                        Waiting
-                      </>
-                    )}
-                  </Badge>
-                </div>
-              </div>
+              <QueueItem key={patient.id} patient={patient} />
             ))}
           </div>
         </CardContent>

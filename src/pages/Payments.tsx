@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePayments, useTodayPayments } from '@/hooks/useDashboardData';
-import { useTodayPatients } from '@/hooks/useDashboardData'; // To get patient names if needed, or assume payment has it
+import { useTodayPatients } from '@/hooks/useDashboardData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,23 +21,52 @@ import {
   Loader2
 } from 'lucide-react';
 
+const PaymentRow = React.memo(({
+  payment,
+  patient,
+  getStatusBadge
+}: {
+  payment: any,
+  patient: any,
+  getStatusBadge: (status: string) => React.ReactNode
+}) => (
+  <TableRow>
+    <TableCell className="font-mono text-sm">#{payment.id}</TableCell>
+    <TableCell>
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs">
+          {patient ? (patient.first_name?.[0] || 'P').toUpperCase() : '#'}
+        </div>
+        <span>{patient ? `${patient.first_name} ${patient.last_name}` : `Patient ${payment.patient}`}</span>
+      </div>
+    </TableCell>
+    <TableCell className="font-semibold">{payment.amount} ETB</TableCell>
+    <TableCell>
+      <Badge variant="outline" className="capitalize">
+        {payment.payment_method}
+      </Badge>
+    </TableCell>
+    <TableCell className="text-muted-foreground">
+      {new Date(payment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+    </TableCell>
+    <TableCell>{getStatusBadge(payment.status)}</TableCell>
+  </TableRow>
+));
+
 const Payments = () => {
   const [filter, setFilter] = useState('today');
   const { data: allPayments, isLoading: isLoadingAll } = usePayments();
   const { data: todayPaymentsData, isLoading: isLoadingToday } = useTodayPayments();
-  const { data: todayPatients = [] } = useTodayPatients(); // For patient lookup if needed
+  const { data: todayPatients = [] } = useTodayPatients();
 
   const payments = filter === 'today' ? todayPaymentsData : allPayments;
   const isLoading = filter === 'today' ? isLoadingToday : isLoadingAll;
 
-  // Calculate stats based on TODAY'S data usually, or filtered data?
-  // Dashboard usually shows today's stats.
-  // Let's use todayPaymentsData for stats to be consistent with "Today's Collection"
   const statsPayments = todayPaymentsData || [];
   const totalCollected = statsPayments.filter(p => p.status === 'paid').reduce((sum, p) => sum + Number(p.amount), 0).toFixed(2);
   const pendingAmount = statsPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + Number(p.amount), 0).toFixed(2);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = React.useCallback((status: string) => {
     switch (status) {
       case 'paid':
         return (
@@ -63,7 +92,7 @@ const Payments = () => {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
-  };
+  }, []);
 
   if (isLoading) {
     return (
@@ -150,31 +179,14 @@ const Payments = () => {
             </TableHeader>
             <TableBody>
               {(payments || []).map((payment) => {
-                // Try to find patient in todayPatients if available, otherwise just show ID
-                // Ideally we fetch patient details or payment has it.
                 const patient = todayPatients.find(p => p.id === payment.patient);
                 return (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-mono text-sm">#{payment.id}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs">
-                          {patient ? (patient.first_name?.[0] || 'P').toUpperCase() : '#'}
-                        </div>
-                        <span>{patient ? `${patient.first_name} ${patient.last_name}` : `Patient ${payment.patient}`}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-semibold">{payment.amount} ETB</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {payment.payment_method}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(payment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(payment.status)}</TableCell>
-                  </TableRow>
+                  <PaymentRow
+                    key={payment.id}
+                    payment={payment}
+                    patient={patient}
+                    getStatusBadge={getStatusBadge}
+                  />
                 );
               })}
             </TableBody>

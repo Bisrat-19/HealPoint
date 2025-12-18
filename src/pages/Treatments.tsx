@@ -24,14 +24,55 @@ import {
   FileText,
   User,
   Calendar,
-  Clock,
   Pill,
   Save,
   CalendarPlus,
   Loader2,
   CheckCircle2,
 } from 'lucide-react';
-import { toast } from 'sonner';
+
+const TreatmentHistoryItem = React.memo(({
+  treatment,
+  onClick
+}: {
+  treatment: Treatment,
+  onClick: (t: Treatment) => void
+}) => (
+  <div
+    className="p-4 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer hover:border-primary/50"
+    onClick={() => onClick(treatment)}
+  >
+    <div className="flex items-start justify-between mb-3">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+          {(treatment.patient.first_name?.[0] || 'P').toUpperCase()}{(treatment.patient.last_name?.[0] || '').toUpperCase()}
+        </div>
+        <div>
+          <p className="font-semibold text-foreground">
+            {treatment.patient.first_name} {treatment.patient.last_name}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {new Date(treatment.created_at).toLocaleDateString()}
+          </p>
+        </div>
+      </div>
+      {treatment.follow_up_required && (
+        <Badge variant="secondary" className="text-xs">
+          Follow-up
+        </Badge>
+      )}
+    </div>
+    <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+      {treatment.notes}
+    </p>
+    {treatment.prescription && (
+      <div className="flex items-center gap-1 text-xs text-primary">
+        <Pill className="w-3 h-3" />
+        Prescription included
+      </div>
+    )}
+  </div>
+));
 
 const Treatments = () => {
   const { user } = useAuth();
@@ -45,10 +86,8 @@ const Treatments = () => {
   const createAppointment = useCreateAppointment();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [viewTreatment, setViewTreatment] = useState<Treatment | null>(null);
 
-  // If we have a selected patient, show the treatment form
   const selectedAppointment = selectedAppointmentId
     ? appointments.find(a => a.id === parseInt(selectedAppointmentId))
     : null;
@@ -62,12 +101,15 @@ const Treatments = () => {
 
   const [createdTreatmentId, setCreatedTreatmentId] = useState<number | null>(null);
 
-  // Filter treatments for the current doctor and selected patient
   const doctorTreatments = treatments.filter(t => {
     const isDoctorMatch = t.doctor.id === user?.id;
     const isPatientMatch = selectedPatientId ? t.patient.id === parseInt(selectedPatientId) : true;
     return isDoctorMatch && isPatientMatch;
   });
+
+  const handleViewTreatment = React.useCallback((treatment: Treatment) => {
+    setViewTreatment(treatment);
+  }, []);
 
   const handleSubmitTreatment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,13 +123,10 @@ const Treatments = () => {
         follow_up_required: formData.follow_up_required,
       }, {
         onSuccess: (data) => {
-          console.log("Treatment created successfully:", data);
           if (formData.follow_up_required) {
-            console.log("Setting createdTreatmentId:", data.id);
             setCreatedTreatmentId(data.id);
             setIsDialogOpen(true);
           } else {
-            // Only reset if no follow-up needed (otherwise wait for follow-up dialog)
             setFormData({
               notes: '',
               prescription: '',
@@ -95,41 +134,28 @@ const Treatments = () => {
               follow_up_date: '',
             });
           }
-        },
-        onError: (error) => {
-          console.error("Failed to create treatment:", error);
         }
       });
     }
   };
 
   const handleCreateFollowUp = async () => {
-    console.log("handleCreateFollowUp called");
-    console.log("State:", { selectedAppointment, user, createdTreatmentId, formData });
-
-    if (!selectedAppointment || !user || !createdTreatmentId) {
-      console.error("Missing required data for follow-up:", { selectedAppointment, user, createdTreatmentId });
-      return;
-    }
+    if (!selectedAppointment || !user || !createdTreatmentId) return;
 
     const payload = {
       patient_id: selectedAppointment.patient.id,
       doctor_id: user.id,
-      // If current is initial, use its ID. If current is follow-up, use its initial_appointment ID.
       initial_appointment_id: selectedAppointment.appointment_type === 'initial'
         ? selectedAppointment.id
         : selectedAppointment.initial_appointment!,
       treatment: createdTreatmentId,
-      appointment_date: new Date(formData.follow_up_date + 'T09:00:00').toISOString(), // Default to 9 AM
+      appointment_date: new Date(formData.follow_up_date + 'T09:00:00').toISOString(),
       appointment_type: 'follow_up' as const,
       notes: 'Follow-up Consultation',
     };
 
-    console.log("Sending follow-up payload:", payload);
-
     createAppointment.mutate(payload, {
       onSuccess: () => {
-        console.log("Follow-up created successfully");
         setIsDialogOpen(false);
         setFormData({
           notes: '',
@@ -138,12 +164,17 @@ const Treatments = () => {
           follow_up_date: '',
         });
         setCreatedTreatmentId(null);
-      },
-      onError: (error) => {
-        console.error("Failed to create follow-up:", error);
       }
     });
   };
+
+  if (isLoadingTreatments || isLoadingAppointments) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -164,7 +195,6 @@ const Treatments = () => {
               <CardDescription>Record treatment for the current patient</CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Patient Info */}
               <div className="p-4 rounded-lg bg-muted/50 mb-6">
                 <div className="flex items-center gap-4 mb-3">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
@@ -279,41 +309,11 @@ const Treatments = () => {
             ) : (
               <div className="space-y-4">
                 {doctorTreatments.map((treatment) => (
-                  <div
+                  <TreatmentHistoryItem
                     key={treatment.id}
-                    className="p-4 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer hover:border-primary/50"
-                    onClick={() => setViewTreatment(treatment)}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                          {(treatment.patient.first_name?.[0] || 'P').toUpperCase()}{(treatment.patient.last_name?.[0] || '').toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-foreground">
-                            {treatment.patient.first_name} {treatment.patient.last_name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(treatment.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      {treatment.follow_up_required && (
-                        <Badge variant="secondary" className="text-xs">
-                          Follow-up
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                      {treatment.notes}
-                    </p>
-                    {treatment.prescription && (
-                      <div className="flex items-center gap-1 text-xs text-primary">
-                        <Pill className="w-3 h-3" />
-                        Prescription included
-                      </div>
-                    )}
-                  </div>
+                    treatment={treatment}
+                    onClick={handleViewTreatment}
+                  />
                 ))}
               </div>
             )}

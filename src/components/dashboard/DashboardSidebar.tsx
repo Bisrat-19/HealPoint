@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import { useSidebarContext } from '@/lib/sidebar-context';
 import { cn } from '@/lib/utils';
@@ -21,24 +21,27 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
+import * as LazyPages from '@/lib/lazy-components';
+
 interface NavItem {
   label: string;
   href: string;
   icon: React.ElementType;
   roles: ('admin' | 'doctor' | 'receptionist' | 'patient')[];
+  component?: { preload: () => Promise<any> };
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'doctor', 'receptionist', 'patient'] },
-  { label: 'User Management', href: '/dashboard/users', icon: Users, roles: ['admin'] },
-  { label: 'Patients', href: '/dashboard/patients', icon: Users, roles: ['admin'] },
-  { label: 'All Appointments', href: '/dashboard/all-appointments', icon: Calendar, roles: ['admin'] },
-  { label: 'Register Patient', href: '/dashboard/register-patient', icon: UserPlus, roles: ['receptionist'] },
-  { label: 'Patient Queue', href: '/dashboard/queue', icon: ClipboardList, roles: ['receptionist'] },
-  { label: 'Appointments', href: '/dashboard/appointments', icon: Calendar, roles: ['doctor', 'receptionist'] },
-  { label: 'Treatments', href: '/dashboard/treatments', icon: Stethoscope, roles: ['doctor'] },
-  { label: 'Payments', href: '/dashboard/payments', icon: CreditCard, roles: ['admin', 'receptionist'] },
-  { label: 'My Profile', href: '/dashboard/profile', icon: Settings, roles: ['admin', 'doctor', 'receptionist', 'patient'] },
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'doctor', 'receptionist', 'patient'], component: LazyPages.Dashboard },
+  { label: 'User Management', href: '/dashboard/users', icon: Users, roles: ['admin'], component: LazyPages.UserManagement },
+  { label: 'Patients', href: '/dashboard/patients', icon: Users, roles: ['admin'], component: LazyPages.Patients },
+  { label: 'All Appointments', href: '/dashboard/all-appointments', icon: Calendar, roles: ['admin'], component: LazyPages.AllAppointments },
+  { label: 'Register Patient', href: '/dashboard/register-patient', icon: UserPlus, roles: ['receptionist'], component: LazyPages.RegisterPatient },
+  { label: 'Patient Queue', href: '/dashboard/queue', icon: ClipboardList, roles: ['receptionist'], component: LazyPages.PatientQueue },
+  { label: 'Appointments', href: '/dashboard/appointments', icon: Calendar, roles: ['doctor', 'receptionist'], component: LazyPages.Appointments },
+  { label: 'Treatments', href: '/dashboard/treatments', icon: Stethoscope, roles: ['doctor'], component: LazyPages.Treatments },
+  { label: 'Payments', href: '/dashboard/payments', icon: CreditCard, roles: ['admin', 'receptionist'], component: LazyPages.Payments },
+  { label: 'My Profile', href: '/dashboard/profile', icon: Settings, roles: ['admin', 'doctor', 'receptionist', 'patient'], component: LazyPages.Profile },
 ];
 
 interface SidebarContentProps {
@@ -50,6 +53,9 @@ interface SidebarContentProps {
 }
 
 const SidebarContentComponent = ({ user, filteredNavItems, location, onNavClick, isCollapsed = false }: SidebarContentProps) => {
+  const navigate = useNavigate();
+  const [isPending, startTransition] = React.useTransition();
+
   const getRoleBadgeColor = () => {
     switch (user.role) {
       case 'admin': return 'bg-admin';
@@ -57,6 +63,21 @@ const SidebarContentComponent = ({ user, filteredNavItems, location, onNavClick,
       case 'receptionist': return 'bg-receptionist';
       default: return 'bg-primary';
     }
+  };
+
+  const handleMouseEnter = (item: NavItem) => {
+    if (item.component?.preload) {
+      item.component.preload();
+    }
+  };
+
+  const handleNavClick = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    if (onNavClick) onNavClick();
+
+    startTransition(() => {
+      navigate(href);
+    });
   };
 
   return (
@@ -83,21 +104,23 @@ const SidebarContentComponent = ({ user, filteredNavItems, location, onNavClick,
           const Icon = item.icon;
 
           const linkContent = (
-            <NavLink
+            <a
               key={item.href}
-              to={item.href}
-              onClick={onNavClick}
+              href={item.href}
+              onClick={(e) => handleNavClick(e, item.href)}
+              onMouseEnter={() => handleMouseEnter(item)}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
                 isActive
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                isCollapsed && "justify-center px-3"
+                isCollapsed && "justify-center px-3",
+                isPending && !isActive && "opacity-70"
               )}
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
               {!isCollapsed && item.label}
-            </NavLink>
+            </a>
           );
 
           if (isCollapsed) {

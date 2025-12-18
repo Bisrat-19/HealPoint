@@ -32,7 +32,6 @@ import {
   Plus,
   Search,
   Trash2,
-  Edit2,
   Users,
   Stethoscope,
   UserCheck,
@@ -41,6 +40,50 @@ import {
 import { toast } from 'sonner';
 import { useUsers, useCreateUser, useDeleteUser } from '@/hooks/users';
 import { CreateUserData } from '@/services/users';
+
+const UserRow = React.memo(({
+  user,
+  onDelete,
+  getRoleBadgeVariant,
+  getRoleIcon
+}: {
+  user: any,
+  onDelete: (id: number) => void,
+  getRoleBadgeVariant: (role: string) => any,
+  getRoleIcon: (role: string) => React.ReactNode
+}) => (
+  <TableRow>
+    <TableCell>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+          {(user.first_name?.[0] || user.username?.[0] || '').toUpperCase()}
+          {(user.last_name?.[0] || '').toUpperCase()}
+        </div>
+        <span className="font-medium">{user.first_name} {user.last_name}</span>
+      </div>
+    </TableCell>
+    <TableCell className="text-muted-foreground">{user.username}</TableCell>
+    <TableCell className="text-muted-foreground">{user.email}</TableCell>
+    <TableCell>
+      <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize gap-1">
+        {getRoleIcon(user.role)}
+        {user.role}
+      </Badge>
+    </TableCell>
+    <TableCell className="text-right">
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="ghost"
+          size="iconSm"
+          onClick={() => onDelete(user.id)}
+          disabled={user.id === 1}
+        >
+          <Trash2 className="w-4 h-4 text-destructive" />
+        </Button>
+      </div>
+    </TableCell>
+  </TableRow>
+));
 
 const UserManagement = () => {
   const { data: users = [], isLoading } = useUsers();
@@ -82,7 +125,7 @@ const UserManagement = () => {
     });
   };
 
-  const handleDelete = (userId: number) => {
+  const handleDelete = React.useCallback((userId: number) => {
     if (userId === 1) {
       toast.error('Cannot delete the primary admin');
       return;
@@ -90,25 +133,25 @@ const UserManagement = () => {
     if (confirm('Are you sure you want to delete this user?')) {
       deleteUser.mutate(userId);
     }
-  };
+  }, [deleteUser]);
 
-  const getRoleBadgeVariant = (role: string) => {
+  const getRoleBadgeVariant = React.useCallback((role: string) => {
     switch (role) {
       case 'admin': return 'default';
       case 'doctor': return 'secondary';
       case 'receptionist': return 'outline';
       default: return 'secondary';
     }
-  };
+  }, []);
 
-  const getRoleIcon = (role: string) => {
+  const getRoleIcon = React.useCallback((role: string) => {
     switch (role) {
       case 'admin': return <Users className="w-4 h-4" />;
       case 'doctor': return <Stethoscope className="w-4 h-4" />;
       case 'receptionist': return <UserCheck className="w-4 h-4" />;
       default: return <Users className="w-4 h-4" />;
     }
-  };
+  }, []);
 
   if (isLoading) {
     return (
@@ -260,37 +303,13 @@ const UserManagement = () => {
             </TableHeader>
             <TableBody>
               {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                        {(user.first_name?.[0] || user.username?.[0] || '').toUpperCase()}
-                        {(user.last_name?.[0] || '').toUpperCase()}
-                      </div>
-                      <span className="font-medium">{user.first_name} {user.last_name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{user.username}</TableCell>
-                  <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize gap-1">
-                      {getRoleIcon(user.role)}
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="iconSm"
-                        onClick={() => handleDelete(user.id)}
-                        disabled={user.id === 1 || deleteUser.isPending}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                <UserRow
+                  key={user.id}
+                  user={user}
+                  onDelete={handleDelete}
+                  getRoleBadgeVariant={getRoleBadgeVariant}
+                  getRoleIcon={getRoleIcon}
+                />
               ))}
             </TableBody>
           </Table>

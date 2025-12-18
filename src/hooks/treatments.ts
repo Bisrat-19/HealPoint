@@ -24,7 +24,9 @@ export const useCreateTreatment = () => {
         mutationFn: (data: CreateTreatmentData) => treatmentService.createTreatment(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['treatments'] });
-            queryClient.invalidateQueries({ queryKey: ['appointments'] }); // Appointments might change status
+            queryClient.invalidateQueries({ queryKey: ['treatments', 'today'] });
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+            queryClient.invalidateQueries({ queryKey: ['appointments', 'today'] });
             toast.success('Treatment recorded successfully');
         },
         onError: (error: any) => {

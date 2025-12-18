@@ -10,6 +10,43 @@ import { toast } from 'sonner';
 import { usePatients, useDeletePatient } from '@/hooks/patients';
 import { Patient } from '@/types/api';
 
+const PatientRow = React.memo(({ patient, onEdit }: { patient: Patient, onEdit: (p: Patient) => void }) => (
+  <tr className="border-b border-border/50 hover:bg-muted/50 transition-colors">
+    <td className="py-3 px-2">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+          {(patient.first_name?.[0] || 'P').toUpperCase()}{(patient.last_name?.[0] || '').toUpperCase()}
+        </div>
+        <span className="font-medium text-foreground">{patient.first_name} {patient.last_name}</span>
+      </div>
+    </td>
+    <td className="py-3 px-2 text-sm text-muted-foreground">{patient.contact_number}</td>
+    <td className="py-3 px-2">
+      <Badge variant="secondary" className="capitalize">
+        {patient.gender === 'M' ? 'Male' : 'Female'}
+      </Badge>
+    </td>
+    <td className="py-3 px-2 text-sm text-muted-foreground">
+      {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : '-'}
+    </td>
+    <td className="py-3 px-2 text-sm text-muted-foreground">
+      {patient.assigned_doctor ? `Dr. ${patient.assigned_doctor.first_name} ${patient.assigned_doctor.last_name}` : 'Not assigned'}
+    </td>
+    <td className="py-3 px-2">
+      <Badge variant="outline">#{patient.queue_number}</Badge>
+    </td>
+    <td className="py-3 px-2 text-sm text-muted-foreground">
+      {new Date(patient.created_at).toLocaleDateString()}
+    </td>
+    <td className="py-3 px-2">
+      <Button variant="ghost" size="sm" onClick={() => onEdit(patient)}>
+        <Edit className="h-4 w-4 mr-1" />
+        Edit
+      </Button>
+    </td>
+  </tr>
+));
+
 const Patients = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -31,7 +68,7 @@ const Patients = () => {
     patient.contact_number.includes(searchQuery)
   );
 
-  const handleEditClick = (patient: Patient) => {
+  const handleEditClick = React.useCallback((patient: Patient) => {
     setSelectedPatient(patient);
     setEditForm({
       first_name: patient.first_name,
@@ -41,7 +78,7 @@ const Patients = () => {
       date_of_birth: patient.date_of_birth || '',
     });
     setIsEditOpen(true);
-  };
+  }, []);
 
   const handleProfileSave = () => {
     if (!editForm.first_name.trim() || !editForm.last_name.trim()) {
@@ -114,40 +151,7 @@ const Patients = () => {
               </thead>
               <tbody>
                 {filteredPatients.map((patient) => (
-                  <tr key={patient.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                          {(patient.first_name?.[0] || 'P').toUpperCase()}{(patient.last_name?.[0] || '').toUpperCase()}
-                        </div>
-                        <span className="font-medium text-foreground">{patient.first_name} {patient.last_name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-2 text-sm text-muted-foreground">{patient.contact_number}</td>
-                    <td className="py-3 px-2">
-                      <Badge variant="secondary" className="capitalize">
-                        {patient.gender === 'M' ? 'Male' : 'Female'}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-2 text-sm text-muted-foreground">
-                      {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : '-'}
-                    </td>
-                    <td className="py-3 px-2 text-sm text-muted-foreground">
-                      {patient.assigned_doctor ? `Dr. ${patient.assigned_doctor.first_name} ${patient.assigned_doctor.last_name}` : 'Not assigned'}
-                    </td>
-                    <td className="py-3 px-2">
-                      <Badge variant="outline">#{patient.queue_number}</Badge>
-                    </td>
-                    <td className="py-3 px-2 text-sm text-muted-foreground">
-                      {new Date(patient.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleEditClick(patient)}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                    </td>
-                  </tr>
+                  <PatientRow key={patient.id} patient={patient} onEdit={handleEditClick} />
                 ))}
               </tbody>
             </table>

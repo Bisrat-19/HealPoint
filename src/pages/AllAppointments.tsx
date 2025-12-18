@@ -9,11 +9,18 @@ import { useAppointments } from '@/hooks/appointments';
 import { useTodayAppointments } from '@/hooks/useDashboardData';
 import { Appointment } from '@/types/api';
 
-const AllAppointments = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+import { useAuth } from '@/lib/auth-context';
 
-  const { data: allAppointments, isLoading: isLoadingAll } = useAppointments();
+const AllAppointments = () => {
+  const { user } = useAuth();
+  const isReceptionist = user?.role === 'receptionist';
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState(isReceptionist ? 'today' : 'all');
+
+  const shouldFetchAll = !isReceptionist || statusFilter !== 'today';
+  const { data: allAppointments, isLoading: isLoadingAll } = useAppointments({ enabled: shouldFetchAll });
+
   const { data: todayAppointmentsData, isLoading: isLoadingToday } = useTodayAppointments();
 
   // Flatten today's appointments if they are grouped, or use as is if array

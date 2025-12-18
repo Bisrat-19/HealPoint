@@ -3,10 +3,11 @@ import { appointmentService } from '@/services/appointments';
 import { CreateAppointmentData } from '@/types/api';
 import { toast } from 'sonner';
 
-export const useAppointments = () => {
+export const useAppointments = (options = {}) => {
     return useQuery({
         queryKey: ['appointments'],
         queryFn: appointmentService.getAppointments,
+        ...options,
     });
 };
 
@@ -17,6 +18,7 @@ export const useCreateAppointment = () => {
         mutationFn: (data: CreateAppointmentData) => appointmentService.createAppointment(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['appointments'] });
+            queryClient.invalidateQueries({ queryKey: ['appointments', 'today'] });
             toast.success('Appointment scheduled successfully');
         },
         onError: (error: any) => {

@@ -9,7 +9,6 @@ import {
   Calendar,
   Clock,
   Search,
-  User,
   Stethoscope,
   ArrowRight,
   CheckCircle2,
@@ -20,7 +19,85 @@ import { Link } from 'react-router-dom';
 import { useAppointments, useDeleteAppointment } from '@/hooks/appointments';
 import { useTodayAppointments } from '@/hooks/useDashboardData';
 import { Appointment } from '@/types/api';
-import { toast } from 'sonner';
+
+const AppointmentCard = React.memo(({
+  apt,
+  user,
+  onDelete,
+  getStatusColor,
+  getStatusIcon
+}: {
+  apt: Appointment,
+  user: any,
+  onDelete: (id: number) => void,
+  getStatusColor: (status: Appointment['status']) => string,
+  getStatusIcon: (status: Appointment['status']) => React.ReactNode
+}) => (
+  <Card className="hover:shadow-md transition-all">
+    <CardContent className="pt-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+            {(apt.patient.first_name?.[0] || 'P').toUpperCase()}{(apt.patient.last_name?.[0] || '').toUpperCase()}
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-foreground">
+                {apt.patient.first_name} {apt.patient.last_name}
+              </h3>
+              <Badge variant="outline" className="text-xs capitalize">
+                {apt.appointment_type.replace('_', ' ')}
+              </Badge>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Stethoscope className="w-3 h-3" />
+                Dr. {apt.doctor.first_name} {apt.doctor.last_name}
+              </span>
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {new Date(apt.appointment_date).toLocaleDateString()}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {new Date(apt.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+            {apt.notes && (
+              <p className="text-sm text-muted-foreground mt-2 line-clamp-1">
+                {apt.notes}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 sm:flex-shrink-0">
+          <Badge className={`capitalize gap-1 ${getStatusColor(apt.status)}`}>
+            {getStatusIcon(apt.status)}
+            {apt.status}
+          </Badge>
+          {user?.role === 'doctor' && apt.status === 'pending' && (
+            <Button size="sm" asChild>
+              <Link to={`/dashboard/treatments?patient=${apt.patient.id}&appointment=${apt.id}`}>
+                Treat
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Link>
+            </Button>
+          )}
+          {user?.role === 'receptionist' && (
+            <Button
+              variant="ghost"
+              size="iconSm"
+              onClick={() => onDelete(apt.id)}
+            >
+              <XCircle className="w-4 h-4 text-destructive" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+));
 
 const Appointments = () => {
   const { user } = useAuth();
@@ -55,16 +132,6 @@ const Appointments = () => {
       apt.patient.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       apt.doctor.first_name.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // For doctors, all tabs are subsets of "Today"
-    if (user?.role === 'doctor') {
-      // Ensure we are only looking at today's appointments (which 'appointments' variable already handles if activeTab is 'today', 
-      // but we need to be careful if we switch logic)
-      // Actually, 'appointments' switches between 'todayAppointments' and 'allAppointments' based on activeTab.
-      // If doctor clicks "Pending", activeTab becomes "pending", so 'appointments' becomes 'allAppointments' (line 41).
-      // We need to force 'todayAppointments' for doctors regardless of tab, OR filter 'allAppointments' to today.
-      // Better approach: Update line 41 to always use todayAppointments for doctors.
-    }
-
     if (activeTab === 'today') return matchesSearch;
     if (activeTab === 'all') return matchesSearch;
     if (activeTab === 'initial') return matchesSearch && apt.appointment_type === 'initial';
@@ -74,21 +141,29 @@ const Appointments = () => {
     return matchesSearch;
   });
 
-  const getStatusColor = (status: Appointment['status']) => {
+  const getStatusColor = React.useCallback((status: Appointment['status']) => {
     switch (status) {
       case 'completed': return 'bg-success/10 text-success border-success/20';
       case 'pending': return 'bg-warning/10 text-warning border-warning/20';
       case 'cancelled': return 'bg-destructive/10 text-destructive border-destructive/20';
+      default: return '';
     }
-  };
+  }, []);
 
-  const getStatusIcon = (status: Appointment['status']) => {
+  const getStatusIcon = React.useCallback((status: Appointment['status']) => {
     switch (status) {
       case 'completed': return <CheckCircle2 className="w-4 h-4" />;
       case 'pending': return <Clock className="w-4 h-4" />;
       case 'cancelled': return <XCircle className="w-4 h-4" />;
+      default: return null;
     }
-  };
+  }, []);
+
+  const handleDelete = React.useCallback((id: number) => {
+    if (confirm('Are you sure you want to delete this appointment?')) {
+      deleteAppointment.mutate(id);
+    }
+  }, [deleteAppointment]);
 
   if (isLoading) {
     return (
@@ -148,75 +223,14 @@ const Appointments = () => {
               </Card>
             ) : (
               filteredAppointments.map((apt) => (
-                <Card key={apt.id} className="hover:shadow-md transition-all">
-                  <CardContent className="pt-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                          {(apt.patient.first_name?.[0] || 'P').toUpperCase()}{(apt.patient.last_name?.[0] || '').toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-foreground">
-                              {apt.patient.first_name} {apt.patient.last_name}
-                            </h3>
-                            <Badge variant="outline" className="text-xs capitalize">
-                              {apt.appointment_type.replace('_', ' ')}
-                            </Badge>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Stethoscope className="w-3 h-3" />
-                              Dr. {apt.doctor.first_name} {apt.doctor.last_name}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(apt.appointment_date).toLocaleDateString()}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {new Date(apt.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          {apt.notes && (
-                            <p className="text-sm text-muted-foreground mt-2 line-clamp-1">
-                              {apt.notes}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 sm:flex-shrink-0">
-                        <Badge className={`capitalize gap-1 ${getStatusColor(apt.status)}`}>
-                          {getStatusIcon(apt.status)}
-                          {apt.status}
-                        </Badge>
-                        {user?.role === 'doctor' && apt.status === 'pending' && (
-                          <Button size="sm" asChild>
-                            <Link to={`/dashboard/treatments?patient=${apt.patient.id}&appointment=${apt.id}`}>
-                              Treat
-                              <ArrowRight className="w-4 h-4 ml-1" />
-                            </Link>
-                          </Button>
-                        )}
-                        {user?.role === 'receptionist' && (
-                          <Button
-                            variant="ghost"
-                            size="iconSm"
-                            onClick={() => {
-                              if (confirm('Are you sure you want to delete this appointment?')) {
-                                deleteAppointment.mutate(apt.id);
-                              }
-                            }}
-                            disabled={deleteAppointment.isPending}
-                          >
-                            <XCircle className="w-4 h-4 text-destructive" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <AppointmentCard
+                  key={apt.id}
+                  apt={apt}
+                  user={user}
+                  onDelete={handleDelete}
+                  getStatusColor={getStatusColor}
+                  getStatusIcon={getStatusIcon}
+                />
               ))
             )}
           </div>
