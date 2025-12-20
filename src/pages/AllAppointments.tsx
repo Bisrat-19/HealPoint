@@ -177,7 +177,9 @@ const AllAppointments = () => {
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-foreground">
-                          Dr. {appointment.doctor.first_name} {appointment.doctor.last_name}
+                          Dr. {appointment.doctor.first_name || appointment.doctor.last_name
+                            ? `${appointment.doctor.first_name} ${appointment.doctor.last_name}`.trim()
+                            : appointment.doctor.username}
                         </span>
                       </div>
                     </td>

@@ -14,12 +14,15 @@ import {
 } from 'lucide-react';
 import { useUsers } from '@/hooks/users';
 import { usePatients } from '@/hooks/patients';
-import { useTodayAppointments } from '@/hooks/useDashboardData';
+import { useTodayAppointments, useTodayTotalAmount, useTotalAmount } from '@/hooks/useDashboardData';
+import { DollarSign } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { data: users = [], isLoading: isLoadingUsers } = useUsers();
   const { data: patients = [], isLoading: isLoadingPatients } = usePatients();
   const { data: todayAppointmentsData, isLoading: isLoadingAppointments } = useTodayAppointments();
+  const { data: todayTotalData, isLoading: isLoadingTodayTotal } = useTodayTotalAmount();
+  const { data: totalAmountData, isLoading: isLoadingTotalAmount } = useTotalAmount();
 
   // Flatten today's appointments
   const todayAppointments = React.useMemo(() => {
@@ -37,7 +40,7 @@ const AdminDashboard = () => {
   const today = new Date().toISOString().split('T')[0];
   const todayPatients = patients.filter(p => p.created_at.startsWith(today));
 
-  if (isLoadingUsers || isLoadingPatients || isLoadingAppointments) {
+  if (isLoadingUsers || isLoadingPatients || isLoadingAppointments || isLoadingTodayTotal || isLoadingTotalAmount) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -77,10 +80,17 @@ const AdminDashboard = () => {
         />
         <StatsCard
           title="Total Patients"
-          value={todayPatients.length}
+          value={patients.length}
           icon={UserPlus}
-          description="Registered today"
+          description="Registered patients"
           iconClassName="bg-warning/10 text-warning"
+        />
+        <StatsCard
+          title="Total Collection"
+          value={`${(totalAmountData?.total_amount || 0).toFixed(2)} ETB`}
+          icon={DollarSign}
+          description="Total revenue"
+          iconClassName="bg-success/10 text-success"
         />
       </div>
 

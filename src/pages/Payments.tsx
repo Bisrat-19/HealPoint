@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { usePayments, useTodayPayments } from '@/hooks/useDashboardData';
+import { usePayments, useTodayPayments, useTotalAmount, useTodayTotalAmount } from '@/hooks/useDashboardData';
+import { useAuth } from '@/lib/auth-context';
 import { useTodayPatients } from '@/hooks/useDashboardData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -54,16 +55,24 @@ const PaymentRow = React.memo(({
 ));
 
 const Payments = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [filter, setFilter] = useState('today');
-  const { data: allPayments, isLoading: isLoadingAll } = usePayments();
+
+  const { data: allPayments, isLoading: isLoadingAll } = usePayments({ enabled: isAdmin && filter === 'all' });
   const { data: todayPaymentsData, isLoading: isLoadingToday } = useTodayPayments();
+  const { data: totalAmountData } = useTotalAmount({ enabled: isAdmin });
+  const { data: todayTotalData } = useTodayTotalAmount();
   const { data: todayPatients = [] } = useTodayPatients();
 
   const payments = filter === 'today' ? todayPaymentsData : allPayments;
   const isLoading = filter === 'today' ? isLoadingToday : isLoadingAll;
 
   const statsPayments = todayPaymentsData || [];
-  const totalCollected = statsPayments.filter(p => p.status === 'paid').reduce((sum, p) => sum + Number(p.amount), 0).toFixed(2);
+  const totalCollected = filter === 'today'
+    ? (todayTotalData?.today_total || 0).toFixed(2)
+    : (totalAmountData?.total_amount || 0).toFixed(2);
+
   const pendingAmount = statsPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + Number(p.amount), 0).toFixed(2);
 
   const getStatusBadge = React.useCallback((status: string) => {
@@ -107,14 +116,18 @@ const Payments = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Payments</h1>
-          <p className="text-muted-foreground">Payment records and collection summary</p>
+          <p className="text-muted-foreground">
+            {filter === 'today' ? "Today's" : "All"} payment records and collection summary
+          </p>
         </div>
-        <Tabs value={filter} onValueChange={setFilter} className="w-fit">
-          <TabsList>
-            <TabsTrigger value="today">Today</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {isAdmin && (
+          <Tabs value={filter} onValueChange={setFilter} className="w-fit">
+            <TabsList>
+              <TabsTrigger value="today">Today</TabsTrigger>
+              <TabsTrigger value="all">All</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
       </div>
 
       {/* Stats */}
@@ -126,7 +139,9 @@ const Payments = () => {
                 <DollarSign className="w-6 h-6 text-success" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Today's Collection</p>
+                <p className="text-sm text-muted-foreground">
+                  {filter === 'today' ? "Today's Collection" : "Total Collection"}
+                </p>
                 <p className="text-2xl font-bold text-success">{totalCollected} ETB</p>
               </div>
             </div>

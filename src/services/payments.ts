@@ -21,4 +21,14 @@ export const paymentService = {
         const response = await api.post('/payments/webhook/', { tx_ref });
         return response.data;
     },
+
+    getTotalAmount: async (): Promise<{ total_amount: number }> => {
+        const response = await api.get<{ total_amount: number }>('/payments/total_amount/');
+        return response.data;
+    },
+
+    getTodayTotalAmount: async (): Promise<{ today_total: number }> => {
+        const response = await api.get<{ today_total: number }>('/payments/today_total/');
+        return response.data;
+    },
 };

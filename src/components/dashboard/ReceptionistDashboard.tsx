@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTodayPatients, useTodayPayments } from '@/hooks/useDashboardData';
+import { useTodayPatients, useTodayPayments, useTodayTotalAmount } from '@/hooks/useDashboardData';
 import StatsCard from './StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,21 +17,19 @@ import { Link } from 'react-router-dom';
 const ReceptionistDashboard = () => {
   const { data: todayPatients = [], isLoading: isLoadingPatients } = useTodayPatients();
   const { data: todayPayments = [], isLoading: isLoadingPayments } = useTodayPayments();
+  const { data: todayTotalData, isLoading: isLoadingTotal } = useTodayTotalAmount();
 
   // Calculate stats from real data
   const stats = {
     todayRegistrations: todayPatients.length,
     queueLength: todayPatients.filter(p => !p.is_seen).length,
     pendingPayments: todayPayments.filter(p => p.status === 'pending').length,
-    totalCollected: todayPayments
-      .filter(p => p.status === 'paid')
-      .reduce((sum, p) => sum + Number(p.amount), 0)
-      .toFixed(2)
+    totalCollected: (todayTotalData?.today_total || 0).toFixed(2)
   };
 
   const pendingPatients = todayPatients.filter(p => !p.is_seen);
 
-  if (isLoadingPatients || isLoadingPayments) {
+  if (isLoadingPatients || isLoadingPayments || isLoadingTotal) {
     return <div>Loading dashboard data...</div>;
   }
 
