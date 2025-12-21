@@ -8,6 +8,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Loader2 } from "lucide-react";
 
 import {
+  LandingPage,
   Login,
   Dashboard,
   UserManagement,
@@ -47,6 +48,7 @@ const App = () => (
           <Suspense fallback={null}>
             <Routes>
               {/* Public routes */}
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
 
               {/* Protected dashboard routes */}
@@ -67,7 +69,7 @@ const App = () => (
               <Route path="/payment/callback" element={<PaymentCallback />} />
 
               {/* Redirects */}
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
 
               {/* 404 */}
               <Route path="*" element={<NotFound />} />

@@ -3,15 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Heart, Lock, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
-
+import { Activity, Lock, User, AlertCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useLogin } from '@/hooks/auth';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login: loginContext } = useAuth(); // We still need context to update state
+  const { login: loginContext } = useAuth();
   const loginMutation = useLogin();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -26,26 +24,7 @@ const Login = () => {
       { username, password },
       {
         onSuccess: async (data) => {
-          // Update context state
-          // We can pass the response data directly if context supports it, 
-          // or let context handle the storage.
-          // Since context.login does the API call currently, we need to refactor context too.
-          // For now, let's assume context.login is refactored to just set state.
-          // OR, we can just use the context's login if we refactor THAT to use React Query.
-          // But the requirement is "use react query".
-
-          // Let's manually update context state here for now, or better:
-          // Refactor context to expose a `setAuth` method.
-          // But wait, context.login currently does the API call.
-          // I will refactor context.login to NOT do the API call, but take the token/user.
-
-          // Actually, let's stick to the plan:
-          // 1. Login component calls mutation.
-          // 2. On success, it calls context.setAuth(data).
-
-          // I need to update AuthContext first to expose setAuth.
-          // For now, assuming loginContext can take the successful data and handle state/navigation.
-          loginContext(data); // Assuming loginContext is refactored to accept data and update state
+          loginContext(data);
           navigate('/dashboard');
         },
         onError: (err: any) => {
@@ -56,44 +35,64 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      {/* Background pattern */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
+    <div className="min-h-screen w-full flex">
+      {/* Left Side - Image & Branding */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-primary/5 overflow-hidden">
+        <div className="absolute inset-0 bg-primary/20 mix-blend-multiply z-10" />
+        <img
+          src="/hero-image-animated.png"
+          alt="HealPoint Medical Team"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="relative z-20 flex flex-col justify-between h-full p-12 text-white">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+              <Activity className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold">HealPoint</span>
+          </div>
+          <div className="space-y-6 max-w-lg">
+            <h1 className="text-5xl font-bold leading-tight">
+              Manage Your Hospital with Ease
+            </h1>
+            <p className="text-lg text-white/90">
+              Streamline patient care, appointments, and treatments in one unified platform.
+            </p>
+          </div>
+          <div className="text-sm text-white/60">
+            © {new Date().getFullYear()} HealPoint Hospital Management System
+          </div>
+        </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-md animate-fade-in">
-        {/* Logo & Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
-            <Heart className="w-8 h-8 text-primary-foreground" />
+      {/* Right Side - Login Form */}
+      <div className="flex-1 flex flex-col justify-center items-center p-8 bg-background">
+        <div className="w-full max-w-md space-y-8">
+          <Button
+            variant="ghost"
+            className="absolute top-8 right-8"
+            onClick={() => navigate('/')}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+
+          <div className="text-center lg:text-left space-y-2">
+            <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
+            <p className="text-muted-foreground">
+              Enter your credentials to access your account
+            </p>
           </div>
-          <h1 className="text-3xl font-bold text-primary-foreground mb-2">
-            HealPoint
-          </h1>
-          <p className="text-primary-foreground/70">
-            Sign in to access your dashboard
-          </p>
-        </div>
 
-        {/* Login Card */}
-        <Card className="border-0 shadow-xl">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
-            <CardDescription className="text-center">
-              Enter your credentials to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm animate-scale-in">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {error}
-                </div>
-              )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm animate-in fade-in slide-in-from-top-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {error}
+              </div>
+            )}
 
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <div className="relative">
@@ -103,14 +102,19 @@ const Login = () => {
                     placeholder="Enter your username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-11"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <a href="#" className="text-sm font-medium text-primary hover:underline">
+                    Forgot password?
+                  </a>
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
@@ -119,7 +123,7 @@ const Login = () => {
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 h-11"
                     required
                   />
                   <button
@@ -135,22 +139,37 @@ const Login = () => {
                   </button>
                 </div>
               </div>
+            </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                size="lg"
-                disabled={loginMutation.isPending}
-              >
-                {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+            <Button
+              type="submit"
+              className="w-full h-11 text-base"
+              disabled={loginMutation.isPending}
+            >
+              {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
+            </Button>
+          </form>
 
-        <p className="text-center text-sm text-primary-foreground/50 mt-6">
-          © 2026 HealPoint - Healthcare Management System
-        </p>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Button variant="outline" className="h-11" disabled>
+              Google
+            </Button>
+            <Button variant="outline" className="h-11" disabled>
+              Microsoft
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

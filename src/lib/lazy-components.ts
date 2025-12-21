@@ -8,6 +8,7 @@ export const lazyWithPreload = (factory: () => Promise<any>) => {
 };
 
 // Lazy load pages
+export const LandingPage = lazyWithPreload(() => import("../pages/LandingPage"));
 export const Login = lazyWithPreload(() => import("../pages/Login"));
 export const Dashboard = lazyWithPreload(() => import("../pages/Dashboard"));
 export const UserManagement = lazyWithPreload(() => import("../pages/UserManagement"));
