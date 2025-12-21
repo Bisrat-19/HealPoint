@@ -23,14 +23,18 @@ const DoctorDashboard = () => {
   const { data: todayAppointmentsData, isLoading: isLoadingAppointments } = useTodayAppointments();
   const { data: treatments = [], isLoading: isLoadingTreatments } = useTreatments();
 
-  // Flatten today's appointments if they are grouped
   const todayAppointments = React.useMemo(() => {
     if (!todayAppointmentsData) return [];
+    let appointments: any[] = [];
     if ('initial' in todayAppointmentsData && 'follow_up' in todayAppointmentsData) {
-      return [...todayAppointmentsData.initial, ...todayAppointmentsData.follow_up];
+      appointments = [...todayAppointmentsData.initial, ...todayAppointmentsData.follow_up];
     }
-    return [];
-  }, [todayAppointmentsData]);
+
+    if (user?.role === 'doctor') {
+      return appointments.filter(a => a.doctor.id === user.id);
+    }
+    return appointments;
+  }, [todayAppointmentsData, user]);
 
   const pendingAppointments = todayAppointments.filter(a => a.status === 'pending');
   const completedToday = todayAppointments.filter(a => a.status === 'completed').length;

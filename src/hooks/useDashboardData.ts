@@ -3,9 +3,12 @@ import { appointmentService } from '@/services/appointments';
 import { patientService } from '@/services/patients';
 import { paymentService } from '@/services/payments';
 
+import { useAuth } from '@/lib/auth-context';
+
 export const useTodayAppointments = () => {
+    const { user } = useAuth();
     return useQuery({
-        queryKey: ['appointments', 'today'],
+        queryKey: ['appointments', 'today', user?.id],
         queryFn: appointmentService.getTodayAppointments,
         staleTime: 1000 * 60 * 5, // 5 minutes
     });

@@ -10,6 +10,14 @@ export const useTreatments = () => {
     });
 };
 
+export const useTreatment = (id: number | null, options?: { enabled?: boolean }) => {
+    return useQuery({
+        queryKey: ['treatments', id],
+        queryFn: () => treatmentService.getTreatment(id!),
+        enabled: !!id && options?.enabled !== false,
+    });
+};
+
 export const useTodayTreatments = () => {
     return useQuery({
         queryKey: ['treatments', 'today'],

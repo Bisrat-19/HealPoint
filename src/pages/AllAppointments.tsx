@@ -10,6 +10,7 @@ import { useTodayAppointments } from '@/hooks/useDashboardData';
 import { Appointment } from '@/types/api';
 
 import { useAuth } from '@/lib/auth-context';
+import TreatmentDetailModal from '@/components/appointments/TreatmentDetailModal';
 
 const AllAppointments = () => {
   const { user } = useAuth();
@@ -17,6 +18,8 @@ const AllAppointments = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState(isReceptionist ? 'today' : 'all');
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const shouldFetchAll = !isReceptionist || statusFilter !== 'today';
   const { data: allAppointments, isLoading: isLoadingAll } = useAppointments({ enabled: shouldFetchAll });
@@ -202,7 +205,14 @@ const AllAppointments = () => {
                       {getStatusBadge(appointment.status)}
                     </td>
                     <td className="py-3 px-2">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedAppointment(appointment);
+                          setIsModalOpen(true);
+                        }}
+                      >
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
@@ -219,6 +229,15 @@ const AllAppointments = () => {
           </div>
         </CardContent>
       </Card>
+
+      <TreatmentDetailModal
+        appointment={selectedAppointment}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedAppointment(null);
+        }}
+      />
     </div>
   );
 };
