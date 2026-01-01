@@ -2,7 +2,6 @@ import axios from 'axios';
 
 // Create axios instance with base URL
 const api = axios.create({
-    //baseURL: 'http://127.0.0.1:8000', 
     baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hospital-management-3f7p.onrender.com',
     headers: {
         'Content-Type': 'application/json',
