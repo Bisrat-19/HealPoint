@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // Create axios instance with base URL
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000', // Django backend URL
+    //baseURL: 'http://127.0.0.1:8000', 
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hospital-management-3f7p.onrender.com',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -26,12 +27,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Handle 401 Unauthorized (token expired or invalid)
         if (error.response && error.response.status === 401) {
-            // Clear local storage and redirect to login if needed
-            // We'll handle the redirect in the AuthContext or component
-            // localStorage.removeItem('hms_token');
-            // localStorage.removeItem('hms_user');
         }
         return Promise.reject(error);
     }
