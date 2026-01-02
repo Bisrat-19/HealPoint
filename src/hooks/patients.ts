@@ -22,6 +22,8 @@ export const useCreatePatient = () => {
             queryClient.invalidateQueries({ queryKey: ['appointments', 'today'] });
             queryClient.invalidateQueries({ queryKey: ['payments', 'all'] });
             queryClient.invalidateQueries({ queryKey: ['payments', 'today'] });
+            queryClient.invalidateQueries({ queryKey: ['payments', 'total'] });
+            queryClient.invalidateQueries({ queryKey: ['payments', 'today-total'] });
 
             // Only show success toast for cash payments
             // For Chapa, success will be shown after payment verification

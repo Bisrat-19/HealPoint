@@ -11,6 +11,8 @@ export const useVerifyPayment = () => {
             if (data.status === 'paid') {
                 queryClient.invalidateQueries({ queryKey: ['payments', 'all'] });
                 queryClient.invalidateQueries({ queryKey: ['payments', 'today'] });
+                queryClient.invalidateQueries({ queryKey: ['payments', 'total'] });
+                queryClient.invalidateQueries({ queryKey: ['payments', 'today-total'] });
                 toast.success('Payment verified successfully');
             } else {
                 toast.error('Payment verification failed');

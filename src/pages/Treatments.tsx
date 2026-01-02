@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import { useTreatments, useCreateTreatment } from '@/hooks/treatments';
-import { useAppointments, useCreateAppointment } from '@/hooks/appointments';
+import { useAppointments, useCreateAppointment, useAppointment } from '@/hooks/appointments';
 import { Treatment } from '@/types/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,6 +81,11 @@ const Treatments = () => {
   const selectedAppointmentId = searchParams.get('appointment');
 
   const { data: treatments = [], isLoading: isLoadingTreatments } = useTreatments();
+  const { data: appointmentData, isLoading: isLoadingAppointmentDetails } = useAppointment(
+    selectedAppointmentId ? parseInt(selectedAppointmentId) : null,
+    { enabled: !!selectedAppointmentId }
+  );
+
   const { data: appointments = [], isLoading: isLoadingAppointments } = useAppointments();
   const createTreatment = useCreateTreatment();
   const createAppointment = useCreateAppointment();
@@ -88,9 +93,9 @@ const Treatments = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [viewTreatment, setViewTreatment] = useState<Treatment | null>(null);
 
-  const selectedAppointment = selectedAppointmentId
+  const selectedAppointment = appointmentData || (selectedAppointmentId
     ? appointments.find(a => a.id === parseInt(selectedAppointmentId))
-    : null;
+    : null);
 
   const [formData, setFormData] = useState({
     notes: '',
@@ -168,7 +173,7 @@ const Treatments = () => {
     });
   };
 
-  if (isLoadingTreatments || isLoadingAppointments) {
+  if (isLoadingTreatments || isLoadingAppointments || isLoadingAppointmentDetails) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

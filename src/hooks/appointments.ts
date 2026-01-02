@@ -11,6 +11,15 @@ export const useAppointments = (options = {}) => {
     });
 };
 
+export const useAppointment = (id: number | null, options = {}) => {
+    return useQuery({
+        queryKey: ['appointments', id],
+        queryFn: () => appointmentService.getAppointment(id!),
+        enabled: !!id,
+        ...options,
+    });
+};
+
 export const useCreateAppointment = () => {
     const queryClient = useQueryClient();
 
