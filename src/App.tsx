@@ -24,14 +24,13 @@ import {
   NotFound
 } from "@/lib/lazy-components";
 
-// Components
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60, // 1 minute
-      gcTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60,
+      gcTime: 1000 * 60 * 5,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -47,11 +46,9 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={null}>
             <Routes>
-              {/* Public routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
 
-              {/* Protected dashboard routes */}
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="users" element={<UserManagement />} />
@@ -65,13 +62,7 @@ const App = () => (
                 <Route path="profile" element={<Profile />} />
               </Route>
 
-              {/* Payment callback route (outside dashboard layout) */}
               <Route path="/payment/callback" element={<PaymentCallback />} />
-
-              {/* Redirects */}
-              {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
-
-              {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
