@@ -145,7 +145,7 @@ const LandingPage = () => {
                                     <div className="relative group">
                                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
                                         <Input
-                                            placeholder="System ID / Username"
+                                            placeholder="Username"
                                             value={username}
                                             onChange={(e) => setUsername(e.target.value)}
                                             className="pl-12 h-14 bg-slate-50/50 border-none rounded-2xl focus-visible:ring-2 focus-visible:ring-blue-100 focus-visible:bg-white transition-all text-sm font-semibold text-[#012970]"

@@ -9,7 +9,6 @@ import { Loader2 } from "lucide-react";
 
 import {
   LandingPage,
-  Login,
   Dashboard,
   UserManagement,
   RegisterPatient,
@@ -47,7 +46,6 @@ const App = () => (
           <Suspense fallback={null}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Navigate to="/" replace />} />
 
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Dashboard />} />
