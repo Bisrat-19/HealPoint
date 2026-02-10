@@ -1,208 +1,207 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Activity, Shield, Heart, Clock, Star, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useLogin } from '@/hooks/auth';
+import {
+    Activity,
+    Lock,
+    User,
+    AlertCircle,
+    Eye,
+    EyeOff,
+    Plus,
+    HeartPulse,
+    Stethoscope,
+    ClipboardList,
+    Shield,
+    Users
+} from 'lucide-react';
 
 const LandingPage = () => {
     const navigate = useNavigate();
+    const { login: loginContext } = useAuth();
+    const loginMutation = useLogin();
+
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+
+        loginMutation.mutate(
+            { username, password },
+            {
+                onSuccess: async (data) => {
+                    loginContext(data);
+                    navigate('/dashboard');
+                },
+                onError: (err: any) => {
+                    setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
+                }
+            }
+        );
+    };
 
     return (
-        <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-            {/* Navigation */}
-            <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                            <Activity className="w-5 h-5 text-primary-foreground" />
-                        </div>
-                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-                            HealPoint
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}>
-                            About
-                        </Button>
-                        <Button onClick={() => navigate('/login')}>
-                            Login
-                        </Button>
-                    </div>
-                </div>
-            </nav>
+        <div className="h-screen w-full bg-[#f0f7ff] flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden font-sans select-none">
 
-            {/* Hero Section */}
-            <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-                <div className="container mx-auto px-4">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
-                        <div className="space-y-8 animate-in slide-in-from-left duration-700 fade-in">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                                <Star className="w-4 h-4 fill-primary" />
-                                <span>For Healthcare Professionals</span>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-white/40 rounded-full blur-[120px] mix-blend-soft-light" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-white/40 rounded-full blur-[100px] mix-blend-soft-light" />
+
+                <Plus className="absolute top-[15%] left-[5%] w-16 h-16 text-blue-200/50 rotate-12 hidden md:block" />
+                <Plus className="absolute bottom-[20%] left-[8%] w-12 h-12 text-blue-200/40 -rotate-12 hidden md:block" />
+                <Stethoscope className="absolute top-[20%] right-[5%] w-24 h-24 text-blue-200/50 -rotate-12 hidden md:block" />
+                <ClipboardList className="absolute bottom-[10%] right-[10%] w-24 h-24 text-blue-200/50 rotate-6 hidden md:block" />
+                <HeartPulse className="absolute top-[45%] right-[2%] w-12 h-12 text-blue-300/40 hidden md:block" />
+            </div>
+
+            <div className="w-full max-w-6xl bg-white/70 backdrop-blur-xl rounded-[40px] shadow-[0_32px_120px_-20px_rgba(0,102,255,0.08)] border border-white/60 relative z-10 flex flex-col md:flex-row min-h-[650px] max-h-[850px] overflow-hidden">
+
+                <div className="flex-[1.2] p-10 md:p-16 flex flex-col justify-between items-start">
+                    <div className="w-full pt-2">
+                        <div className="flex items-center gap-4 mb-10 group">
+                            <div className="w-11 h-11 rounded-[16px] bg-[#0061f2] flex items-center justify-center shadow-lg shadow-blue-500/10 transition-transform duration-500 group-hover:rotate-[10deg]">
+                                <Activity className="w-6 h-6 text-white" />
                             </div>
-                            <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
-                                Streamlined <br />
-                                <span className="text-primary">Hospital Management</span>
+                            <div className="flex flex-col">
+                                <span className="text-2xl font-black text-[#012970] tracking-tighter leading-none">
+                                    HealPoint <span className="text-[#0061f2] ml-0.5">HMS</span>
+                                </span>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                    <div className="h-[2px] w-4 bg-blue-600/40 rounded-full" />
+                                    <span className="text-[9px] font-black text-blue-500/80 uppercase tracking-[0.4em]">Clinical intelligence</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="max-w-[420px] space-y-4 animate-in fade-in slide-in-from-left-4 duration-700 delay-100">
+                            <h1 className="text-3xl md:text-[40px] font-black text-[#012970] leading-[1.1] tracking-tight">
+                                Unified Hospital <br className="hidden md:block" />
+                                <span className="text-[#0061f2]">Intelligence System.</span>
                             </h1>
-                            <p className="text-lg text-muted-foreground max-w-xl">
-                                The all-in-one platform for receptionists, doctors, and administrators. Efficiently manage patient records, appointments, and treatments.
+                            <p className="text-lg text-[#556987] font-medium leading-relaxed max-w-[380px]">
+                                A centralized, real time workspace for efficient clinical management and hospital wide coordination.
                             </p>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <Button size="lg" className="text-lg h-12 px-8" onClick={() => navigate('/login')}>
-                                    Staff Login
-                                    <ArrowRight className="ml-2 w-5 h-5" />
-                                </Button>
-                                <Button size="lg" variant="outline" className="text-lg h-12 px-8">
-                                    Learn More
-                                </Button>
-                            </div>
-                            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-border/50">
-                                <div>
-                                    <h3 className="text-3xl font-bold text-primary">Fast</h3>
-                                    <p className="text-sm text-muted-foreground">Patient Registration</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-3xl font-bold text-primary">Secure</h3>
-                                    <p className="text-sm text-muted-foreground">Records Management</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-3xl font-bold text-primary">Easy</h3>
-                                    <p className="text-sm text-muted-foreground">Scheduling</p>
-                                </div>
-                            </div>
                         </div>
+                    </div>
 
-                        <div className="relative lg:h-[600px] flex items-center justify-center animate-in slide-in-from-right duration-700 fade-in delay-200">
-                            {/* Decorative elements */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-full blur-3xl opacity-30 animate-pulse" />
-                            <div className="relative w-full max-w-md lg:max-w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-border/50 group">
-                                <img
-                                    src="/hero-image-animated.png"
-                                    alt="Doctor and Mother Animation"
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform transition-transform duration-500 translate-y-2 group-hover:translate-y-0">
-                                    <p className="font-medium text-lg">"Caring for our community, one family at a time."</p>
-                                    <p className="text-sm opacity-80 mt-2">- Dr. Sntayehu & Family</p>
+                    <div className="relative w-full aspect-video max-w-[500px] hidden sm:flex items-center justify-center mb-10 pr-12 mt-4">
+                        <div className="relative w-full h-full flex items-center justify-center">
+                            <div className="absolute w-36 h-36 bg-blue-600/5 rounded-[40px] flex items-center justify-center animate-pulse">
+                                <div className="w-20 h-20 bg-blue-600/10 rounded-[30px] flex items-center justify-center">
+                                    <Activity className="w-10 h-10 text-blue-600" />
                                 </div>
                             </div>
 
-                            {/* Floating cards */}
-                            <div className="absolute -left-8 top-1/2 -translate-y-1/2 bg-background/90 backdrop-blur border border-border p-4 rounded-xl shadow-lg animate-in fade-in zoom-in duration-500 delay-500 hidden lg:block">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                                        <Shield className="w-5 h-5 text-green-600" />
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-sm">Certified Care</p>
-                                        <p className="text-xs text-muted-foreground">ISO 9001:2015</p>
-                                    </div>
-                                </div>
+                            <div className="absolute top-2 -left-6 w-28 h-28 bg-white rounded-3xl shadow-xl shadow-blue-500/5 border border-blue-50 flex flex-col items-center justify-center p-4">
+                                <Users className="w-7 h-7 text-blue-500 mb-2" />
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Staff Node</span>
                             </div>
 
-                            <div className="absolute -right-8 bottom-32 bg-background/90 backdrop-blur border border-border p-4 rounded-xl shadow-lg animate-in fade-in zoom-in duration-500 delay-700 hidden lg:block">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                                        <Heart className="w-5 h-5 text-red-600" />
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-sm">Top Rated</p>
-                                        <p className="text-xs text-muted-foreground">4.9/5 Stars</p>
-                                    </div>
+                            <div className="absolute bottom-0 -right-4 w-36 h-36 bg-white rounded-[40px] shadow-xl shadow-blue-500/5 border border-blue-50 flex flex-col items-center justify-center p-4">
+                                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
+                                    <HeartPulse className="w-6 h-6 text-blue-600" />
                                 </div>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none text-center px-4">Patient Data</span>
                             </div>
+
+                            <div className="absolute top-1/2 -left-12 -translate-y-1/2 w-24 h-24 bg-white rounded-[24px] shadow-lg shadow-blue-500/5 border border-blue-50 flex items-center justify-center p-4">
+                                <Stethoscope className="w-8 h-8 text-[#00a1ff]" />
+                            </div>
+
+                            <div className="absolute inset-4 border-2 border-dashed border-blue-100/50 rounded-[48px] -z-10" />
                         </div>
                     </div>
                 </div>
-            </section>
 
-            {/* Features Section */}
-            <section id="about" className="py-20 bg-muted/30">
-                <div className="container mx-auto px-4">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
-                        <h2 className="text-3xl font-bold mb-4">Why Choose HealPoint?</h2>
-                        <p className="text-muted-foreground">
-                            Designed specifically for hospital workflows. Empower your staff with tools that simplify daily operations and improve patient care coordination.
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {[
-                            {
-                                icon: <Clock className="w-6 h-6 text-primary" />,
-                                title: "Efficient Scheduling",
-                                description: "Receptionists can quickly book, reschedule, and manage appointments for multiple doctors."
-                            },
-                            {
-                                icon: <Shield className="w-6 h-6 text-primary" />,
-                                title: "Secure Records",
-                                description: "Keep patient data safe and easily accessible for authorized medical staff only."
-                            },
-                            {
-                                icon: <Activity className="w-6 h-6 text-primary" />,
-                                title: "Doctor Workflow",
-                                description: "Doctors can view their daily schedule, access patient history, and record treatments seamlessly."
-                            }
-                        ].map((feature, index) => (
-                            <div
-                                key={index}
-                                className="bg-background p-6 rounded-2xl border border-border hover:border-primary/50 transition-colors hover:shadow-lg group"
-                            >
-                                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                                    {feature.icon}
-                                </div>
-                                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                                <p className="text-muted-foreground">{feature.description}</p>
+                <div className="flex-1 bg-slate-50/20 p-8 md:p-12 border-l border-blue-50/30 flex flex-col justify-center">
+                    <div className="bg-white rounded-[40px] p-10 shadow-[0_40px_100px_-20px_rgba(0,102,255,0.06)] border border-blue-50/50">
+                        <div className="text-left mb-10">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3 border border-blue-100/50">
+                                <Shield className="w-3 h-3" />
+                                <span>Secure Node Login</span>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+                            <h2 className="text-3xl font-black text-[#012970] tracking-tight">Staff Login</h2>
+                        </div>
 
-            {/* CTA Section */}
-            <section className="py-20">
-                <div className="container mx-auto px-4">
-                    <div className="bg-primary rounded-3xl p-8 md:p-16 text-center text-primary-foreground relative overflow-hidden">
-                        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80')] opacity-10 bg-cover bg-center mix-blend-overlay" />
-                        <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-                            <h2 className="text-3xl md:text-4xl font-bold">Ready to Optimize Your Workflow?</h2>
-                            <p className="text-primary-foreground/80 text-lg">
-                                Log in to access the hospital management dashboard.
-                            </p>
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {error && (
+                                <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 text-red-600 text-[11px] font-bold border border-red-100/50 animate-in fade-in zoom-in duration-300">
+                                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                    {error}
+                                </div>
+                            )}
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Username</Label>
+                                    <div className="relative group">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                                        <Input
+                                            placeholder="System ID / Username"
+                                            value={username}
+                                            onChange={(e) => setUsername(e.target.value)}
+                                            className="pl-12 h-14 bg-slate-50/50 border-none rounded-2xl focus-visible:ring-2 focus-visible:ring-blue-100 focus-visible:bg-white transition-all text-sm font-semibold text-[#012970]"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center px-1">
+                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Password</Label>
+                                        <button type="button" className="text-[9px] font-black text-blue-500 uppercase tracking-widest hover:text-blue-600 transition-colors">Recovery</button>
+                                    </div>
+                                    <div className="relative group">
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                                        <Input
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="••••••••"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="pl-12 pr-12 h-14 bg-slate-50/50 border-none rounded-2xl focus-visible:ring-2 focus-visible:ring-blue-100 focus-visible:bg-white transition-all text-sm font-semibold text-[#012970]"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-blue-500 transition-colors focus:outline-none"
+                                        >
+                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <Button
-                                size="lg"
-                                variant="secondary"
-                                className="text-lg h-12 px-8"
-                                onClick={() => navigate('/login')}
+                                type="submit"
+                                className="w-full h-14 bg-[#0c7094] hover:bg-[#0a5a78] text-white text-sm font-bold rounded-2xl shadow-xl shadow-blue-100 transition-all active:scale-[0.98] mt-4 uppercase tracking-[0.1em]"
+                                disabled={loginMutation.isPending}
                             >
-                                Access Dashboard
+                                {loginMutation.isPending ? 'Verifying...' : 'Login'}
                             </Button>
-                        </div>
+                        </form>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            {/* Footer */}
-            <footer className="py-12 border-t border-border">
-                <div className="container mx-auto px-4">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                                <Activity className="w-5 h-5 text-primary-foreground" />
-                            </div>
-                            <span className="text-xl font-bold">HealPoint</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                            © {new Date().getFullYear()} HealPoint Hospital. All rights reserved.
-                        </div>
-                        <div className="flex gap-6">
-                            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Privacy</a>
-                            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Terms</a>
-                            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Contact</a>
-                        </div>
-                    </div>
+            <div className="absolute bottom-2 w-full flex flex-col md:flex-row items-center justify-between px-16 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] z-0 pointer-events-none">
+                <div className="flex items-center gap-3 opacity-60">
+                    <Activity className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Secure Node: HP-ALPHA-01</span>
                 </div>
-            </footer>
+                <div className="mt-4 md:mt-0 opacity-40">
+                    HealPoint Framework © {new Date().getFullYear()}
+                </div>
+            </div>
+
         </div>
     );
 };
